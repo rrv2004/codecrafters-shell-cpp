@@ -20,7 +20,7 @@ int main() {
     else if(command.substr(0,4)=="type"){
       std:: string arg=command.substr(5);
       if(arg=="exit"||arg=="echo"){
-        std::cout<<command<<" is a shell builtin"<<std::endl;
+        std::cout<<arg<<" is a shell builtin"<<std::endl;
       }
       else{
         std::cout<<command<<": not found"<<std::endl;
