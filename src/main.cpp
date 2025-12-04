@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
 
+void echo(std::string arg){
+  std::cout<<arg<<std::endl;
+}
 void repl(){
   while(true){
     std::cout << "$ ";
@@ -8,6 +11,9 @@ void repl(){
     std::getline(std::cin,command);
     if(command=="exit"){
       break;
+    }
+    if(command.substr(0,4)=="echo"){
+      echo(command.substr(4));
     }
     std::cout<<command<<": command not found"<<std::endl;
   }
