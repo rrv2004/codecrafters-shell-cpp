@@ -13,7 +13,11 @@ void repl(){
       break;
     }
     if(command.substr(0,4)=="echo"){
-      echo(command.substr(4));
+      int l=4;
+      while(command[l]==' '){
+        l++;
+      }
+      echo(command.substr(l));
     }
     std::cout<<command<<": command not found"<<std::endl;
   }
