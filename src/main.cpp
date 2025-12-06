@@ -2,8 +2,9 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <cstdlib>
-#include <unistd.h>     // access()
+#include <cstdlib>//getenv()
+#include <unistd.h>// access(), fork(), execv()
+#include <sys/wait.h>// waitpid()
 
 // Split PATH by ':'
 std::vector<std::string> split_path() {
@@ -40,6 +41,18 @@ bool find_executable(const std::string &cmd, std::string &result) {
   return false;
 }
 
+// Split a command into tokens (cmd + args)
+std::vector<std::string> tokenize(const std::string &line) {
+  std::stringstream ss(line);
+  std::string token;
+  std::vector<std::string> tokens;
+
+  while (ss >> token)
+    tokens.push_back(token);
+
+  return tokens;
+}
+
 int main() {
   while (true) {
 
@@ -48,27 +61,36 @@ int main() {
     std::cerr << std::unitbuf;
 
     std::cout << "$ ";
-    std::string command;
-    std::getline(std::cin, command);
-
-    if (command == "exit") {
+    std::string line;
+    std::getline(std::cin, line);
+    if (line.empty()) continue;
+    // Tokenize input
+    auto tokens = tokenize(line);
+    std::string cmd = tokens[0];
+    // BUILTIN: exit
+    if (cmd == "exit") {
       break;
     }
-
-    else if (command.substr(0, 4) == "echo") {
-      std::cout << command.substr(5) << std::endl;
+    // BUILTIN: echo
+    else if (cmd == "echo") {
+      // print everything after "echo"
+      for (size_t i = 1; i < tokens.size(); i++) {
+        std::cout << tokens[i];
+        if (i + 1 < tokens.size()) std::cout << " ";
+      }
+      std::cout << std::endl;
     }
+    // BUILTIN: type
+    else if (cmd == "type") {
 
-    else if (command.substr(0, 4) == "type") {
+      if (tokens.size() < 2) continue;
+      std::string arg = tokens[1];
 
-      std::string arg = command.substr(5);
-
-      // ---- Check builtin ----
+      // Check builtins
       if (arg == "exit" || arg == "echo" || arg == "type") {
         std::cout << arg << " is a shell builtin" << std::endl;
       }
       else {
-        // ---- Search PATH ----
         std::string path_result;
 
         if (find_executable(arg, path_result)) {
@@ -78,9 +100,35 @@ int main() {
         }
       }
     }
-
+    // EXTERNAL COMMAND
     else {
-      std::cout << command << ": command not found" << std::endl;
+      std::string path_result;
+      // Search PATH for binary
+      if (!find_executable(cmd, path_result)) {
+        std::cout << cmd << ": command not found" << std::endl;
+        continue;
+      }
+
+      // Build char* argv[] for execv
+      std::vector<char*> argv;
+      for (auto &s : tokens){
+        argv.push_back(const_cast<char*>(s.c_str()));
+        //const_cast converts const char* to char *(becomes modifiable pointer rather than a constant pointer)
+      }
+      argv.push_back(nullptr);
+
+      pid_t pid = fork();
+
+      if (pid == 0) {
+        // Child process: execute program
+        execv(path_result.c_str(), argv.data());
+        perror("execv");  // Only runs if exec fails
+        exit(1);
+      }
+      else {
+        // Parent process: wait for child
+        waitpid(pid, nullptr, 0);
+      }
     }
   }
 }
