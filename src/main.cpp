@@ -98,7 +98,7 @@ int main() {
       std::string arg = tokens[1];
 
       // Check builtins
-      if (arg == "exit" || arg == "echo" || arg == "type") {
+      if (arg == "exit" || arg == "echo" || arg == "type"||arg=="pwd") {
         std::cout << arg << " is a shell builtin" << std::endl;
       }
       else {
