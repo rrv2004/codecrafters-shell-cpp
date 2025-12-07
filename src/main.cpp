@@ -5,6 +5,7 @@
 #include <cstdlib>//getenv()
 #include <unistd.h>// access(), fork(), execv()
 #include <sys/wait.h>// waitpid()
+#include <limits.h>//PATH_MAX
 
 // Split PATH by ':'
 std::vector<std::string> split_path() {
@@ -80,6 +81,16 @@ int main() {
       }
       std::cout << std::endl;
     }
+    // BUILTIN : pwd
+    else if(cmd=="pwd"){
+      char cwd[PATH_MAX];
+      if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+        std::cout << cwd << std::endl;
+      }
+      else{
+        perror("pwd");
+      }
+    } 
     // BUILTIN: type
     else if (cmd == "type") {
 
