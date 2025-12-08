@@ -94,7 +94,13 @@ int main() {
     //BUILTIN: cd
     else if (cmd == "cd") {
     if (tokens.size() < 2) {
-        continue;  // no argument for now
+      char* home = getenv("HOME");
+        if (home == nullptr) {
+            std::cout << "cd: HOME not set" << std::endl;
+        }else if (chdir(home) != 0) {
+            perror("cd");
+        }
+        continue;
     }
 
     std::string dir = tokens[1];
@@ -139,7 +145,7 @@ int main() {
       std::string arg = tokens[1];
 
       // Check builtins
-      if (arg == "exit" || arg == "echo" || arg == "type"||arg=="pwd") {
+      if (arg == "exit" || arg == "echo" || arg == "type"||arg=="pwd"||arg=="cd") {
         std::cout << arg << " is a shell builtin" << std::endl;
       }
       else {
