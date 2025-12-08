@@ -3,7 +3,7 @@
 #include <vector>
 #include <sstream>
 #include <cstdlib>//getenv()
-#include <unistd.h>// access(), fork(), execv()
+#include <unistd.h>// access(), fork(), execv(),chdir()
 #include <sys/wait.h>// waitpid()
 #include <limits.h>//PATH_MAX
 
@@ -90,6 +90,22 @@ int main() {
       else{
         perror("pwd");
       }
+    }
+    //BUILTIN: cd(abs path)
+    else if(cmd=="cd"){
+      if(tokens.size()<2){
+        continue;//no argument
+      }
+      std::string dir = tokens[1];
+      if(dir.empty()||dir[0]!='/'){
+        std::cout<<"cd: "<<dir<<": No such file or directory"<<std::endl;
+        continue;
+      }
+      // Try chdir
+      if (chdir(dir.c_str()) != 0) {
+        std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
+      }
+
     } 
     // BUILTIN: type
     else if (cmd == "type") {
@@ -111,11 +127,13 @@ int main() {
         }
       }
     }
+    
     // EXTERNAL COMMAND
     else {
       std::string path_result;
       // Search PATH for binary
-      if (!find_executable(cmd, path_result)) {
+      if
+       (!find_executable(cmd, path_result)) {
         std::cout << cmd << ": command not found" << std::endl;
         continue;
       }
