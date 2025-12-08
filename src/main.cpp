@@ -108,7 +108,7 @@ int main() {
     // ABSOLUTE PATH
     if (!dir.empty() && dir[0] == '/') {
         if (chdir(dir.c_str()) != 0) {
-            std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
+            std::cout << "cd " << dir << ": No such file or directory" << std::endl;
         }
         continue;
     }
