@@ -93,50 +93,72 @@ int main() {
     }
     //BUILTIN: cd
     else if (cmd == "cd") {
+    std::string dir;
+
+    // CASE 0: No argument -> go HOME
     if (tokens.size() < 2) {
-      char* home = getenv("HOME");
+        char* home = getenv("HOME");
         if (home == nullptr) {
             std::cout << "cd: HOME not set" << std::endl;
-        }else if (chdir(home) != 0) {
+        } else if (chdir(home) != 0) {
             perror("cd");
         }
         continue;
     }
 
-    std::string dir = tokens[1];
+    dir = tokens[1];
 
-    // ABSOLUTE PATH
-    if (!dir.empty() && dir[0] == '/') {
-        if (chdir(dir.c_str()) != 0) {
-            std::cout << "cd " << dir << ": No such file or directory" << std::endl;
+    // CASE 1: cd ~ 
+    if (dir == "~") {
+        char* home = getenv("HOME");
+        if (!home) {
+            std::cout << "cd: HOME not set" << std::endl;
+            continue;
+        }
+        if (chdir(home) != 0) perror("cd");
+        continue;
+    }
+
+    // CASE 2: cd ~/something
+    if (dir.size() > 1 && dir[0] == '~' && dir[1] == '/') {
+        char* home = getenv("HOME");
+        if (!home) {
+            std::cout << "cd: HOME not set" << std::endl;
+            continue;
+        }
+
+        // Expand to: HOME + (dir after '~')
+        std::string expanded = std::string(home) + dir.substr(1);
+
+        if (chdir(expanded.c_str()) != 0) {
+            std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
         }
         continue;
     }
-    // HOME PATH
-    if(dir=="~"){
-      char *path=getenv("HOME");
-      chdir(path);
+
+    // CASE 3: Absolute path 
+    if (!dir.empty() && dir[0] == '/') {
+        if (chdir(dir.c_str()) != 0) {
+            std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
+        }
+        continue;
     }
 
-    // RELATIVE PATH 
-    // get cwd
+    // ------------------- CASE 4: Relative path -------------------
     char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) == nullptr) {
+    if (!getcwd(cwd, sizeof(cwd))) {
         perror("getcwd");
         continue;
     }
 
-    // Build combined path: <cwd>/<dir>
     std::string full = std::string(cwd) + "/" + dir;
 
-    // Try changing directory
     if (chdir(full.c_str()) != 0) {
         std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
     }
 
-
     continue;
-    } 
+  } 
  
     // BUILTIN: type
     else if (cmd == "type") {
