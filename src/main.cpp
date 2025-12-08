@@ -106,6 +106,11 @@ int main() {
         }
         continue;
     }
+    // HOME PATH
+    if(dir=="~"){
+      char *path=getenv("HOME");
+      chdir(path);
+    }
 
     // RELATIVE PATH 
     // get cwd
@@ -122,6 +127,7 @@ int main() {
     if (chdir(full.c_str()) != 0) {
         std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
     }
+
 
     continue;
     } 
