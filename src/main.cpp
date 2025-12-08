@@ -91,22 +91,41 @@ int main() {
         perror("pwd");
       }
     }
-    //BUILTIN: cd(abs path)
-    else if(cmd=="cd"){
-      if(tokens.size()<2){
-        continue;//no argument
-      }
-      std::string dir = tokens[1];
-      if(dir.empty()||dir[0]!='/'){
-        std::cout<<"cd: "<<dir<<": No such file or directory"<<std::endl;
-        continue;
-      }
-      // Try chdir
-      if (chdir(dir.c_str()) != 0) {
-        std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
-      }
+    //BUILTIN: cd
+    else if (cmd == "cd") {
+    if (tokens.size() < 2) {
+        continue;  // no argument for now
+    }
 
+    std::string dir = tokens[1];
+
+    // ABSOLUTE PATH
+    if (!dir.empty() && dir[0] == '/') {
+        if (chdir(dir.c_str()) != 0) {
+            std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
+        }
+        continue;
+    }
+
+    // RELATIVE PATH 
+    // get cwd
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) == nullptr) {
+        perror("getcwd");
+        continue;
+    }
+
+    // Build combined path: <cwd>/<dir>
+    std::string full = std::string(cwd) + "/" + dir;
+
+    // Try changing directory
+    if (chdir(full.c_str()) != 0) {
+        std::cout << "cd: " << dir << ": No such file or directory" << std::endl;
+    }
+
+    continue;
     } 
+ 
     // BUILTIN: type
     else if (cmd == "type") {
 
